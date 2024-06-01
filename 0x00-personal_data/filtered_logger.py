@@ -4,7 +4,9 @@ filtered_logger module
 """
 import logging
 import re
-from typing import List
+from typing import List, Tuple
+
+PII_FIELDS: Tuple = ('name', 'email', 'phone', 'ssn', 'password')
 
 
 class RedactingFormatter(logging.Formatter):
@@ -46,3 +48,15 @@ def filter_datum(fields: List[str], redaction: str,
         r'\1={}'.format(redaction),
         message
         )
+
+
+def get_logger() -> logging.Logger:
+    """
+    Returns a Logger object."""
+    logger = logging.getLogger('user_data')
+    logger.propagate = False
+    logger.setLevel(logging.INFO)
+    handler = logging.StreamHandler()
+    handler.setFormatter(RedactingFormatter(PII_FIELDS))
+    logger.addHandler(handler)
+    return logger
