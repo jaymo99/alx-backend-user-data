@@ -3,8 +3,11 @@
 filtered_logger module
 """
 import logging
+from os import getenv
 import re
 from typing import List, Tuple
+
+import mysql.connector
 
 PII_FIELDS: Tuple = ('name', 'email', 'phone', 'ssn', 'password')
 
@@ -57,6 +60,17 @@ def get_logger() -> logging.Logger:
     logger.propagate = False
     logger.setLevel(logging.INFO)
     handler = logging.StreamHandler()
-    handler.setFormatter(RedactingFormatter(PII_FIELDS))
+    handler.setFormatter(RedactingFormatter(list(PII_FIELDS)))
     logger.addHandler(handler)
     return logger
+
+
+def get_db() -> mysql.connector.connection.MySQLConnection:
+    """Returns a DB connector."""
+    host: str = getenv('PERSONAL_DATA_DB_HOST', 'localhost')
+    db: str = getenv('PERSONAL_DATA_DB_NAME')
+    usr: str = getenv('PERSONAL_DATA_DB_USERNAME', 'root')
+    pwd: str = getenv('PERSONAL_DATA_DB_PASSWORD', '')
+
+    return mysql.connector.connect(host=host, database=db,
+                                   user=usr, password=pwd)
