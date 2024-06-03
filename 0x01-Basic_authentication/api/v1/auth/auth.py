@@ -13,6 +13,12 @@ class Auth:
         """
         Check if authentication is required.
         """
+        if not path or not excluded_paths:
+            return True
+        if path[-1] != '/':
+            path = "{}/".format(path)
+        if path not in excluded_paths:
+            return True
         return False
 
     def authorization_header(self, request=None) -> str:
