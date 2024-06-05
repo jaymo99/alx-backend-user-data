@@ -3,9 +3,10 @@
 auth module for the API
 """
 import base64
-from typing import TypeVar
-from api.v1.auth.auth import Auth
+from typing import TypeVar, Tuple
+
 from models.base import DATA
+from api.v1.auth.auth import Auth
 from models.user import User
 
 
@@ -45,7 +46,7 @@ class BasicAuth(Auth):
 
     def extract_user_credentials(
             self, decoded_base64_authorization_header: str
-            ) -> (str, str):
+            ) -> Tuple[str, str]:
         """Returns the user email and password
         from the Base64 decoded value."""
         if decoded_base64_authorization_header is None:
@@ -61,7 +62,7 @@ class BasicAuth(Auth):
 
     def user_object_from_credentials(
             self, user_email: str, user_pwd: str
-            ) -> TypeVar('User'):
+            ) -> TypeVar('User'):  # type: ignore
         """Returns the User instance based on email and password."""
         if user_email is None or not isinstance(user_email, str):
             return None
@@ -78,3 +79,15 @@ class BasicAuth(Auth):
             return None
 
         return user_inst[0]
+
+    def current_user(self, request=None) -> TypeVar('User'):
+        """
+        Retrieves the `User` instance for a request."""
+        usr, pwd = self.extract_user_credentials(
+            self.decode_base64_authorization_header(
+                self.extract_base64_authorization_header(
+                    self.authorization_header(request)
+                )
+            )
+        )
+        return self.user_object_from_credentials(usr, pwd)
