@@ -7,6 +7,9 @@ from os import getenv
 from flask import Flask, abort, jsonify, request
 from flask_cors import CORS, cross_origin
 
+from api.v1.auth.auth import Auth
+from api.v1.auth.basic_auth import BasicAuth
+from api.v1.auth.session_auth import SessionAuth
 from api.v1.views import app_views
 
 app = Flask(__name__)
@@ -16,17 +19,10 @@ auth = None
 auth_type = getenv('AUTH_TYPE')
 
 if auth_type == 'auth':
-    from api.v1.auth.auth import Auth
-    auth = Auth()
-
-if auth_type == 'auth':
-    from api.v1.auth.auth import Auth
     auth = Auth()
 elif auth_type == 'basic_auth':
-    from api.v1.auth.basic_auth import BasicAuth
     auth = BasicAuth()
 elif auth_type == 'session_auth':
-    from api.v1.auth.session_auth import SessionAuth
     auth = SessionAuth()
 
 
@@ -39,12 +35,18 @@ def authenticate():
     excluded_paths = [
         '/api/v1/status/',
         '/api/v1/unauthorized/',
-        '/api/v1/forbidden/'
+        '/api/v1/forbidden/',
+        '/api/v1/auth_session/login/'
         ]
     if not auth.require_auth(request.path, excluded_paths):
         return
-    if not auth.authorization_header(request):
+    if type(auth) in (Auth, BasicAuth) and \
+            not auth.authorization_header(request):
         abort(401)
+    if type(auth) is SessionAuth and \
+            not auth.session_cookie(request):
+        abort(401)
+
     current_user = auth.current_user(request)
     if not current_user:
         abort(403)
