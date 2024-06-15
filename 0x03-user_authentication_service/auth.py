@@ -2,10 +2,10 @@
 """Auth module
 """
 from bcrypt import gensalt, hashpw
+from sqlalchemy.orm.exc import NoResultFound
 
 from db import DB
 from user import User
-from sqlalchemy.orm.exc import NoResultFound
 
 
 def _hash_password(password: str) -> bytes:
