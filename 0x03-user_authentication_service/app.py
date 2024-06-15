@@ -32,7 +32,7 @@ def users():
 
 @app.route('/sessions', methods=['POST'], strict_slashes=False)
 def login():
-    """
+    """User login
     """
     email = request.form.get('email')
     password = request.form.get('password')
@@ -68,6 +68,24 @@ def profile():
     if user:
         return jsonify({"email": f"{user.email}"})
     abort(403)
+
+
+@app.route('/reset_password', methods=['POST'], strict_slashes=False)
+def get_reset_password_token():
+    """Returns a user's reset token
+    """
+    email = request.form.get('email')
+
+    try:
+        reset_token = AUTH.get_reset_password_token(email)
+        return jsonify({"email": email, "reset_token": reset_token})
+    except ValueError:
+        abort(403)
+
+    session_id = AUTH.create_session(email)
+    response = jsonify({"email": f"{email}", "message": "logged in"})
+    response.set_cookie('session_id', session_id)
+    return response
 
 
 if __name__ == "__main__":
