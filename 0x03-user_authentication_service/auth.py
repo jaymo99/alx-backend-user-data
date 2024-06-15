@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Auth module
 """
+from uuid import uuid4
+
 from bcrypt import checkpw, gensalt, hashpw
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -13,6 +15,12 @@ def _hash_password(password: str) -> bytes:
     Takes in a password string and returns a
     salted hash of the input password"""
     return hashpw(password.encode('utf-8'), gensalt())
+
+
+def _generate_uuid() -> str:
+    """
+    Returns a new UUID"""
+    return str(uuid4())
 
 
 class Auth:
