@@ -82,10 +82,20 @@ def get_reset_password_token():
     except ValueError:
         abort(403)
 
-    session_id = AUTH.create_session(email)
-    response = jsonify({"email": f"{email}", "message": "logged in"})
-    response.set_cookie('session_id', session_id)
-    return response
+
+@app.route('/reset_password', methods=['PUT'], strict_slashes=False)
+def update_password():
+    """Updates a user's password
+    """
+    email = request.form.get('email')
+    reset_token = request.form.get('reset_token')
+    new_password = request.form.get('new_password')
+
+    try:
+        AUTH.update_password(reset_token, new_password)
+        return jsonify({"email": email, "message": "Password updated"})
+    except ValueError:
+        abort(403)
 
 
 if __name__ == "__main__":
